@@ -59,3 +59,20 @@ test('already confirmed POST replay skips PUT and invalid confirmation is not su
 test('blocked session storage prevents the submission from proceeding', () => {
   assert.throws(() => saveAttempt({ setItem: () => { throw new Error('Quota'); } }, attempt()), /could not save/);
 });
+
+test('optional email survives reload and retries while legacy attempts remain unchanged', () => {
+  const store = storage();
+  const draft = createAttempt('Ava', '007123', [{ _id: id, quantity: 3 }], attempt().payload.requestId, ' Ava@example.test ');
+  saveAttempt(store, draft);
+  assert.deepEqual(restoreAttempt(store).payload, draft.payload);
+  assert.equal(draft.payload.email, 'Ava@example.test');
+  assert.equal(draft.payload.phone, '007123');
+  assert.equal(draft.payload.items[0].quantity, 3);
+  saveAttempt(store, attempt());
+  assert.equal(Object.hasOwn(restoreAttempt(store).payload, 'email'), false);
+  for (const email of ['broken', 'a@@example.test', 'a b@example.test', 123, 'a'.repeat(255)]) {
+    assert.throws(() => createAttempt('Ava', '007123', [{ _id: id, quantity: 1 }], attempt().payload.requestId, email));
+  }
+  store.setItem(STORAGE_KEY, JSON.stringify({ ...draft, payload: { ...draft.payload, email: 'broken' } }));
+  assert.equal(restoreAttempt(store), null);
+});

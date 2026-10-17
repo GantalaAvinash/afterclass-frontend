@@ -71,3 +71,41 @@ test("bearer credentials are added only when explicitly supplied for a request",
   assert.equal(calls[0].headers.Authorization, "Bearer private-session");
   assert.equal(calls[1].headers.Authorization, undefined);
 });
+
+test('a failed GET is retried once with a fresh URL and no cached response', async () => {
+  const calls = [];
+  const api = createApi('https://api.example', async (url, options) => {
+    calls.push({ url, options });
+    if (calls.length === 1) throw new TypeError('stalled connection');
+    return new Response('[{"space":3}]');
+  });
+  assert.deepEqual(await api('/lessons?q=art'), [{ space: 3 }]);
+  assert.equal(calls.length, 2);
+  assert.match(calls[1].url, /q=art&_retry=\d+$/);
+  assert.ok(calls.every(({ options }) => options.cache === 'no-store'));
+});
+
+test('timeouts retry only reads and stay within the overall budget', async () => {
+  let calls = 0;
+  const api = createApi('', async (_url, { signal }) => {
+    calls++;
+    if (calls === 2) return new Response('{}');
+    return new Promise((_resolve, reject) => signal.addEventListener('abort', () => reject(new DOMException('timeout', 'AbortError')), { once: true }));
+  }, 100);
+  assert.deepEqual(await api('/lessons'), {});
+  assert.equal(calls, 2);
+});
+
+test('mutations, HTTP errors and cancelled reads are never automatically replayed', async () => {
+  for (const method of ['POST', 'PUT', 'DELETE']) {
+    let calls = 0;
+    await assert.rejects(createApi('', async () => { calls++; throw new TypeError('lost response'); })('/orders', { method }));
+    assert.equal(calls, 1);
+  }
+  let calls = 0;
+  await assert.rejects(createApi('', async () => { calls++; return new Response('{"error":"Denied"}', { status: 401 }); })('/admin/lessons'), error => error.status === 401);
+  assert.equal(calls, 1);
+  const controller = new AbortController();
+  await assert.rejects(createApi('', async () => { calls++; controller.abort(); throw new DOMException('cancel', 'AbortError'); })('/lessons', { signal: controller.signal }), error => error.name === 'AbortError');
+  assert.equal(calls, 2);
+});

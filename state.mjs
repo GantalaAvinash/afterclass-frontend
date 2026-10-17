@@ -36,6 +36,12 @@ export function contactErrors(name, phone) {
   };
 }
 
+export function emailError(email = '') {
+  return typeof email === 'string' && email.trim().length <= 254 &&
+    (!email.trim() || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()))
+    ? '' : 'Enter a valid email address or leave this optional field empty.';
+}
+
 export function formatPrice(price) {
   return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(price);
 }

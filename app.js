@@ -1,20 +1,21 @@
 import { createApp } from "./vendor/vue.esm-browser.prod.js";
-import { createApi, resolveApiBase } from "./api.mjs";
+import { createApi, resolveApiBase } from "./api.mjs?v=20261017-cart1";
 import {
   sortLessons,
   formatPrice,
   changeCart,
   cartLines,
   contactErrors,
+  emailError,
   availableSpace,
-} from "./state.mjs";
+} from "./state.mjs?v=20261017-cart1";
 import {
   createAttempt,
   restoreAttempt,
   saveAttempt,
   submitAttempt,
   STORAGE_KEY,
-} from "./checkout.mjs";
+} from "./checkout.mjs?v=20261017-cart1";
 import {
   category,
   artTone,
@@ -41,10 +42,13 @@ createApp({
       sortField: "topic",
       sortDirection: "asc",
       announcement: "",
+      toast: "",
+      toastTimer: null,
       view: "catalogue",
       busy: false,
       name: "",
       phone: "",
+      email: "",
       touched: false,
       checkoutError: "",
       confirmation: "",
@@ -137,6 +141,7 @@ createApp({
     contactError() {
       return contactErrors(this.name, this.phone);
     },
+    emailError() { return emailError(this.email); },
     cartLocked() {
       return this.busy || Boolean(this.attempt);
     },
@@ -147,6 +152,7 @@ createApp({
         !this.busy &&
         !this.contactError.name &&
         !this.contactError.phone &&
+        !this.emailError &&
         (Boolean(this.attempt) || !this.cartConflict)
       );
     },
@@ -250,6 +256,23 @@ createApp({
         this.enrolmentBusy[id] = false;
       }
     },
+    showToast(message) {
+      clearTimeout(this.toastTimer);
+      this.toast = message;
+      // The persistent View cart button remains after the brief visual feedback.
+      this.toastTimer = setTimeout(() => { this.toast = ""; }, 6000);
+    },
+    dismissToast() { clearTimeout(this.toastTimer); this.toast = ""; },
+    viewCart() {
+      if (!this.cartCount) return;
+      this.view = "cart";
+      this.dismissToast();
+      if (window.location.hash.startsWith("#/lessons")) {
+        this.detailLoader?.cancel();
+        window.history.replaceState(null, "", "#catalogue");
+      }
+      this.focusView();
+    },
     addPlace(id) {
       if (this.cartLocked) return;
       const before = this.cart[id] || 0;
@@ -258,11 +281,13 @@ createApp({
         this.confirmation = "";
         this.announcement =
           "One place for " + this.lessons[id].topic + " added to your basket.";
+        this.showToast(this.announcement);
       }
     },
     removePlace(id) {
       if (this.cartLocked) return;
       this.cart = changeCart(this.lessons, this.cart, id, -1);
+      this.dismissToast();
       this.announcement = "One place removed from your basket.";
       if (!this.cartCount && this.view === "cart") {
         this.view = "catalogue";
@@ -334,7 +359,7 @@ createApp({
       this.checkoutError = "";
       try {
         if (!this.attempt) {
-          const attempt = createAttempt(this.name, this.phone, this.cartItems);
+          const attempt = createAttempt(this.name, this.phone, this.cartItems, undefined, this.email);
           saveAttempt(this.storage, attempt);
           this.attempt = attempt;
         }
@@ -347,6 +372,8 @@ createApp({
         this.enrolments = {};
         this.name = "";
         this.phone = "";
+        this.email = "";
+        this.dismissToast();
         this.touched = false;
         this.confirmation =
           "Your order has been submitted. Reference: " + result.orderId;
@@ -422,6 +449,7 @@ createApp({
     if (this.attempt) {
       this.name = this.attempt.payload.name;
       this.phone = this.attempt.payload.phone;
+      this.email = this.attempt.payload.email || "";
       this.cart = Object.fromEntries(
         this.attempt.payload.items.map((item) => [
           item.lessonId,
@@ -443,6 +471,7 @@ createApp({
   },
   beforeUnmount() {
     clearTimeout(this.searchTimer);
+    clearTimeout(this.toastTimer);
     this.searchController?.abort();
     this.detailLoader?.cancel();
     window.removeEventListener("hashchange", this.routeListener);

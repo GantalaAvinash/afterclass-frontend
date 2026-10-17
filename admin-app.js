@@ -1,5 +1,5 @@
 import { createApp } from "./vendor/vue.esm-browser.prod.js";
-import { createApi, resolveApiBase } from "./api.mjs";
+import { createApi, resolveApiBase } from "./api.mjs?v=20261017-cart1";
 import { formatPrice } from "./state.mjs";
 import {
   emptyLesson,

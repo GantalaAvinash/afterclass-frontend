@@ -78,3 +78,11 @@ The workspace AI_ACKNOWLEDGEMENT.md records actual assistance. Hosted phone/tabl
 - API lessons: https://afterclass-21j41a62f1.onrender.com/lessons
 
 The service is configured from this combined repository. Hosted verification and restricted-network restart passed on 17 October 2026; see the root VERIFICATION.md. The original frontend/backend repositories remain available separately for coursework history.
+
+## Cart feedback and Safari recovery — 17 October 2026
+
+Adding a lesson shows a six-second visible notification and a persistent selected-quantity note. Its catalogue/detail action becomes **View cart**, so a second click opens the selection instead of silently adding another place. Increase/decrease controls in the cart change one place at a time, update totals and displayed availability, stop at server stock and remove an empty line. Removing the last place returns to the catalogue. Controls remain locked while a checkout is uncertain.
+
+Checkout accepts an optional email address alongside the coursework name and phone. Invalid supplied email blocks submission; blank email keeps the original contract. No email is sent. Unfinished attempts preserve email in session storage and retry the same request ID. Old attempts without email still restore.
+
+API requests use native fetch with cache: no-store. A failed/stalled GET gets one fresh-URL retry: the first attempt receives up to 15 seconds, and the second uses the remaining portion of the original 90-second total budget. HTTP errors, invalid JSON, superseded searches and mutations are not automatically retried. Checkout's explicit request-ID recovery remains authoritative. Versioned first-party assets refresh normal Safari's cached scripts on release. These measures improve recovery; they cannot guarantee every browser/network connection will succeed. Earlier normal-profile failures had no HTTP response, while private Safari and direct API probes worked; the exact transport cause was not established.
