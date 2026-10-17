@@ -33,7 +33,7 @@ export function resolveApiBase(configured, location) {
 }
 
 export function createApi(base, fetcher = fetch, timeoutMs = 90000) {
-  return async function request(path, { method = "GET", body, signal, token } = {}) {
+  return async function request(path, { method = "GET", body, signal, token, form = false } = {}) {
     const deadline = Date.now() + timeoutMs;
     const read = method === "GET";
     // A fresh second GET can recover a stalled Safari connection. Keep the
@@ -49,12 +49,12 @@ export function createApi(base, fetcher = fetch, timeoutMs = 90000) {
       const freshPath = attempt === 0 ? path : path + (path.includes("?") ? "&" : "?") + "_retry=" + Date.now();
       try {
         const response = await fetcher(base + freshPath, {
-          method, cache: "no-store", signal: controller.signal,
+          method, cache: "no-store", credentials: "omit", signal: controller.signal,
           headers: {
-            ...(body === undefined ? {} : { "Content-Type": "application/json" }),
+            ...(body === undefined ? {} : { "Content-Type": form ? "application/x-www-form-urlencoded;charset=UTF-8" : "application/json" }),
             ...(token ? { Authorization: "Bearer " + token } : {}),
           },
-          ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+          ...(body === undefined ? {} : { body: form ? new URLSearchParams(body).toString() : JSON.stringify(body) }),
         });
         const data = await response.json().catch((error) => {
           if (controller.signal.aborted) throw error;

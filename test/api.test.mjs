@@ -109,3 +109,15 @@ test('mutations, HTTP errors and cancelled reads are never automatically replaye
   await assert.rejects(createApi('', async () => { calls++; controller.abort(); throw new DOMException('cancel', 'AbortError'); })('/lessons', { signal: controller.signal }), error => error.name === 'AbortError');
   assert.equal(calls, 2);
 });
+
+test('admin form encoding preserves special characters and does not attach browser credentials', async () => {
+  let sent;
+  const api = createApi('https://api.example', async (_url, options) => { sent = options; return new Response('{}'); });
+  await api('/admin/session', { method: 'POST', form: true, body: { username: 'operator', password: 'test+&%=value' } });
+  assert.equal(sent.headers['Content-Type'], 'application/x-www-form-urlencoded;charset=UTF-8');
+  assert.deepEqual(Object.fromEntries(new URLSearchParams(sent.body)), { username: 'operator', password: 'test+&%=value' });
+  assert.equal(sent.credentials, 'omit');
+  await api('/orders', { method: 'POST', body: { name: 'Ava' } });
+  assert.equal(sent.headers['Content-Type'], 'application/json');
+  assert.equal(sent.body, '{"name":"Ava"}');
+});

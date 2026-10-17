@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow"><meta name="referrer" content="strict-origin-when-cross-origin">
+  <title>AfterClass connection check</title>
+  <link rel="stylesheet" href="./styles.css?v=20261017-cart1">
+  <style>
+    body { padding: 24px; } main { max-width: 1200px; margin: auto; } h1 { font-size: clamp(32px,5vw,52px); }
+    fieldset { padding: 20px; border: 1px solid #ccd4c7; border-radius: 16px; margin: 20px 0; }
+    .fields { display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 16px; }
+    label { display: block; font-weight: 600; margin-bottom: 6px; } input,select { width: 100%; min-height: 44px; font: inherit; padding: 10px; }
+    button { margin: 14px 12px 0 0; min-height: 44px; } .results { overflow-x: auto; } table { width: 100%; border-collapse: collapse; font-size: 14px; } th,td { padding: 10px; text-align: left; border-bottom: 1px solid #d8ddcf; white-space: nowrap; }
+    #status { min-height: 28px; font-weight: 600; } small { display: block; margin-block: 12px; }
+  </style>
+  <script src="./config.js"></script><script type="module" src="./connection-check.mjs?v=20261017-transport1"></script>
+</head>
+<body><main>
+  <a href="./">← Back to AfterClass</a>
+  <p class="eyebrow">DEVELOPER SUPPORT</p><h1>Connection check.</h1>
+  <p>Measure requests without retries. Public checks read lessons and teachers. Sign-in checks use your existing admin account, read the protected lists, then sign out. No lessons, teachers, orders or available places are changed.</p>
+  <fieldset><legend>Connection settings</legend><div class="fields">
+    <div><label for="credentials-mode">Browser credentials mode</label><select id="credentials-mode"><option value="omit">Omit (current application)</option><option value="same-origin">Same origin (previous default)</option></select></div>
+    <div><label for="encoding">Sign-in encoding</label><select id="encoding"><option value="form">Form (current application)</option><option value="json">JSON (comparison)</option></select></div>
+  </div><button type="button" class="button" id="public-check">Run five public checks</button></fieldset>
+  <fieldset><legend>Existing administrator — optional</legend><div class="fields">
+    <div><label for="username">Admin username</label><input id="username" autocomplete="username" maxlength="40"></div>
+    <div><label for="password">Password</label><input id="password" type="password" autocomplete="current-password" maxlength="128"></div>
+    <div><label for="repetitions">Sign-in repetitions</label><select id="repetitions"><option value="1">One</option><option value="2">Two</option><option value="3">Three</option></select></div>
+  </div><button type="button" class="button" id="login-check">Run sign-in check</button>
+  <small>The existing limit is ten sign-in attempts per 15-minute window, shared with Studio. Passwords and tokens stay out of results and are not saved. A password is used only for the selected run and cleared from the field immediately.</small></fieldset>
+  <p id="status" role="status" aria-live="polite">Ready. Open Safari’s Network panel to compare protocols.</p>
+  <div class="results"><table><caption>Request timings in milliseconds</caption><thead><tr><th>Run</th><th>Request</th><th>Status</th><th>Protocol</th><th>Total</th><th>Before request</th><th>Response wait</th><th>Server app</th><th>Password</th><th>Result</th></tr></thead><tbody id="results"></tbody></table></div>
+</main></body></html>

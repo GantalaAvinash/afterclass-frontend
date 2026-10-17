@@ -159,6 +159,7 @@ export function createAdminClient(api, onExpired = () => {}) {
     async login(username, password) {
       const session = await api("/admin/session", {
         method: "POST",
+        form: true,
         body: { username, password },
       });
       if (
