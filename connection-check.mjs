@@ -1,4 +1,4 @@
-import { resolveApiBase } from './api.mjs?v=20261017-transport2';
+import { createApi, resolveApiBase } from './api.mjs?v=20261017-transport2';
 
 const base = resolveApiBase(window.AFTERCLASS_CONFIG?.apiBaseUrl, window.location);
 const status = document.getElementById('status');
@@ -89,3 +89,17 @@ input('login-check').addEventListener('click', () => {
     } finally { password = ''; }
   });
 });
+
+input('client-check').addEventListener('click', () => task(async () => {
+  // Same tab, destination and data: isolate the application request wrapper.
+  const client = createApi(base);
+  status.textContent = 'Comparing app client with raw health…';
+  const start = performance.now();
+  try {
+    const value = await client('/health');
+    render({ run: 'client', method: 'GET', path: '/health', status: 200, totalMs: number(performance.now() - start), result: value.status === 'ok' ? 'Healthy' : 'Unexpected response' });
+  } catch {
+    render({ run: 'client', method: 'GET', path: '/health', status: 'Failed', totalMs: number(performance.now() - start), result: 'Client connection failed' });
+  }
+  await measured('/health', { run: 'raw', credentials: 'omit' });
+}));
