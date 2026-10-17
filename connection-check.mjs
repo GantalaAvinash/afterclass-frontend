@@ -1,4 +1,4 @@
-import { resolveApiBase } from './api.mjs?v=20261017-transport1';
+import { resolveApiBase } from './api.mjs?v=20261017-transport2';
 
 const base = resolveApiBase(window.AFTERCLASS_CONFIG?.apiBaseUrl, window.location);
 const status = document.getElementById('status');

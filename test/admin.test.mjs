@@ -122,6 +122,7 @@ test("admin tokens stay in the client closure and clear on expiry or sign-out", 
   const client = createAdminClient(
     async (path, options) => {
       calls.push({ path, options });
+      if (path === "/health") return { status: "ok", database: "connected" };
       if (path === "/admin/session")
         return {
           token: "a".repeat(64),
@@ -140,11 +141,29 @@ test("admin tokens stay in the client closure and clear on expiry or sign-out", 
   const session = await client.login("operator", "private-password");
   assert.equal(session.token, undefined);
   await client.request("/admin/lessons");
-  assert.equal(calls[1].options.token, "a".repeat(64));
+  assert.equal(calls[2].options.token, "a".repeat(64));
   await assert.rejects(client.request("/admin/expired"));
   assert.equal(expired, true);
   await assert.rejects(client.request("/admin/lessons"), /Sign in/);
   await client.login("operator", "private-password");
   client.clear();
   await assert.rejects(client.request("/admin/lessons"), /Sign in/);
+});
+
+test("admin sign-in verifies the browser connection before sending a password and does not replay login", async () => {
+  const calls = [], stages = [];
+  const client = createAdminClient(async (path, options) => {
+    calls.push({ path, options });
+    if (path === "/health") return { status: "ok", database: "connected" };
+    throw new Error("connection failed");
+  });
+  await assert.rejects(client.login("operator", "private-password", stage => stages.push(stage)), /connection failed/);
+  assert.deepEqual(calls.map(call => call.path), ["/health", "/admin/session"]);
+  assert.equal(calls[0].options, undefined);
+  assert.equal(calls[1].options.form, true);
+  assert.deepEqual(stages, ["Connecting to Studio…", "Checking your credentials…"]);
+  const unavailableCalls = [];
+  const unavailable = createAdminClient(async path => { unavailableCalls.push(path); return { status: "unavailable" }; });
+  await assert.rejects(unavailable.login("operator", "private-password"), /temporarily unavailable/);
+  assert.deepEqual(unavailableCalls, ["/health"]);
 });

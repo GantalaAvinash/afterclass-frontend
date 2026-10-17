@@ -1,5 +1,5 @@
 import { createApp } from "./vendor/vue.esm-browser.prod.js";
-import { createApi, resolveApiBase } from "./api.mjs?v=20261017-transport1";
+import { createApi, resolveApiBase } from "./api.mjs?v=20261017-transport2";
 import { formatPrice } from "./state.mjs";
 import {
   emptyLesson,
@@ -13,7 +13,7 @@ import {
   emptyTeacher,
   teacherErrors,
   teacherMutationAttempt,
-} from "./admin-state.mjs?v=20261017-transport1";
+} from "./admin-state.mjs?v=20261017-transport2";
 
 createApp({
   data: () => ({
@@ -23,6 +23,7 @@ createApp({
     username: "",
     password: "",
     busy: false,
+    loginStage: "Connecting to Studio…",
     error: "",
     notice: "",
     loading: false,
@@ -162,13 +163,14 @@ createApp({
       this.busy = true;
       this.error = "";
       try {
-        this.session = await this.client.login(this.username, this.password);
+        this.session = await this.client.login(this.username, this.password, stage => { this.loginStage = stage; });
         this.password = "";
         clearTimeout(this.expiryTimer);
         this.expiryTimer = setTimeout(
           () => this.expire(),
           Math.max(0, Date.parse(this.session.expiresAt) - Date.now()),
         );
+        this.loginStage = "Opening your workspace…";
         await this.load();
         this.$nextTick(() => document.getElementById("admin-main")?.focus());
       } catch (error) {

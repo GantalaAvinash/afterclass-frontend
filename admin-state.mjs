@@ -156,7 +156,15 @@ export function restoreAdminAttempt(storage) {
 export function createAdminClient(api, onExpired = () => {}) {
   let token = "";
   return {
-    async login(username, password) {
+    async login(username, password, onProgress = () => {}) {
+      // Establish this browser's connection before sending credentials. A
+      // warm Render process does not guarantee Safari's connection is usable.
+      // The harmless GET has bounded transport recovery; login is never replayed.
+      onProgress("Connecting to Studio…");
+      const health = await api("/health");
+      if (health?.status !== "ok" || health.database !== "connected")
+        throw new Error("The service is temporarily unavailable. Please retry.");
+      onProgress("Checking your credentials…");
       const session = await api("/admin/session", {
         method: "POST",
         form: true,

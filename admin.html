@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="./styles.css?v=20261017-cart1" />
     <link rel="stylesheet" href="./admin.css" />
     <script src="./config.js"></script>
-    <script type="module" src="./admin-app.js?v=20261017-transport1"></script>
+    <script type="module" src="./admin-app.js?v=20261017-transport2"></script>
   </head>
   <body class="admin-body">
     <a class="skip-link" href="#admin-main">Skip to management</a>
@@ -69,7 +69,7 @@
                 class="button checkout-button"
                 v-bind:disabled="busy || !client || !username || !password"
               >
-                {{ busy ? 'Signing in…' : 'Sign in to Studio →' }}
+                {{ busy ? loginStage : 'Sign in to Studio →' }}
               </button>
             </form>
             <p class="summary-note">
