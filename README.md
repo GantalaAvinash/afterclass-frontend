@@ -1,5 +1,9 @@
 # AfterClass frontend
 
+## Development provenance
+
+The requesting user is a developer providing paid assistance to a separate student. OpenAI Codex generated or edited implementation, tests and documentation under that developer's direction. Direct student contributions and independent review are not verified here. See the combined repository's [student handover](https://github.com/GantalaAvinash/after_class_simple_brainstrome/blob/main/STUDENT_HANDOVER.md) and [assistance record](https://github.com/GantalaAvinash/after_class_simple_brainstrome/blob/main/AI_ACKNOWLEDGEMENT.md). The student should confirm permitted assessment use and required disclosure with the module team.
+
 Vue 3.5.44 standalone browser ESM, Options API, plain JavaScript and CSS. There is no build step and no frontend JavaScript library beyond Vue.
 
 ## Local use
