@@ -10,7 +10,7 @@ The real application requires the configured Express/Atlas backend. Serve this f
 python3 -m http.server 8080 --bind 127.0.0.1
 ~~~
 
-Open http://127.0.0.1:8080. Blank apiBaseUrl in config.js uses http://localhost:3000 only during localhost development.
+Open http://127.0.0.1:8080. The committed config.js points to the live Render API. To integrate with a local API, set apiBaseUrl to http://localhost:3000 in your local copy; a blank value also selects localhost during local development. The explicit fixture preview supplies its own configuration.
 
 For a separate, explicitly labelled fixture preview, run npm run preview:test from the sibling backend folder and open http://127.0.0.1:8081. This is test data, not an assessment deployment or MongoDB substitute.
 
@@ -65,4 +65,12 @@ Configure the backend's FRONTEND_ORIGINS as the GitHub Pages origin without a re
 - favicon.svg is the unmodified Lucide palette SVG from version 0.468.0, under the ISC licence in vendor/LICENSE.lucide.
 - No remote font service, CSS framework, icon JavaScript library, or generated raster image is required.
 
-The workspace AI_ACKNOWLEDGEMENT.md records actual assistance. Student explanation review and real hosted verification remain pending.
+The workspace AI_ACKNOWLEDGEMENT.md records actual assistance. Hosted phone/tablet/catalogue/checkout/teacher verification passed on 17 October 2026. Student explanation review remains pending.
+
+## Current combined-repository deployment
+
+- Source: https://github.com/GantalaAvinash/after_class_simple_brainstrome
+- Frontend: https://gantalaavinash.github.io/after_class_simple_brainstrome/
+- API lessons: https://afterclass-21j41a62f1.onrender.com/lessons
+
+The service is configured from this combined repository. Hosted verification and restricted-network restart passed on 17 October 2026; see the root VERIFICATION.md. The original frontend/backend repositories remain available separately for coursework history.
